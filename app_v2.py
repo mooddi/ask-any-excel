@@ -19,7 +19,37 @@ try:
     import google.generativeai as genai
 except Exception:
     genai = None
+# -------------------------
+#بوابة كلمة المرور
+# -------------------------
+def require_password():
+    pwd = ""
+    try:
+        pwd = st.secrets.get("APP_PASSWORD", "")
+    except Exception:
+        pass
+    if not pwd:
+        pwd = os.getenv("APP_PASSWORD", "")
 
+    if not pwd:
+        st.error("APP_PASSWORD غير موجودة.")
+        st.stop()
+
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if st.session_state.authenticated:
+        return
+
+    st.title("🔒 دخول التجربة")
+    entered = st.text_input("Password", type="password")
+    if st.button("دخول"):
+        if entered == pwd:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("كلمة المرور خطأ.")
+    st.stop()
 # -------------------------
 # إعداد الصفحة
 # -------------------------
@@ -27,6 +57,7 @@ st.set_page_config(page_title="Ask Any Excel - V2 (CEO)", layout="wide")
 st.title("🧠 Ask Any Excel - V2 (CEO-ready)")
 st.caption("أزرار جاهزة للأسئلة الشائعة + مربع 'أي سؤال' بالذكاء الاصطناعي (اختياري).")
 
+require_password()
 # -------------------------
 # Helpers: أسرار / مفاتيح
 # -------------------------
@@ -392,3 +423,4 @@ else:
             raise
 
         run_sql(con, sql, show_sql, want_explain, question, model)
+
